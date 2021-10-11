@@ -4,7 +4,7 @@ import Screens from '~/navigation/index';
 
 export default function App() {
   return (
-    <SafeAreaView>
+    <SafeAreaView style={styles.container}>
       <StatusBar
         barStyle="dark-content"
         animated={true}
@@ -15,4 +15,8 @@ export default function App() {
   );
 }
 
-const styles = StyleSheet.create({});
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+});

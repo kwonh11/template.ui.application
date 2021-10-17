@@ -1,19 +1,16 @@
-import React, {Component, ReactChild, useEffect, useRef, useState} from 'react';
+import React, {ReactNode, useRef} from 'react';
 import {
-  PanResponder,
   Animated,
   Dimensions,
-  StyleSheet,
-  PanResponderInstance,
   GestureResponderEvent,
+  PanResponder,
   PanResponderGestureState,
-  View,
+  PanResponderInstance,
+  StyleSheet,
 } from 'react-native';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const SCREEN_WIDTH = Dimensions.get('window').width;
-
-type SwiperStatus = 'UP' | 'MID' | 'DOWN';
 interface Position {
   x: number;
   y: number;
@@ -25,9 +22,9 @@ interface Props {
   upPosition: Position;
   midPosition: Position;
   downPosition: Position;
+  showShadow?: boolean;
   containerHeight: number;
-  children: ReactChild[] | ReactChild;
-  setSwiperStatus?: (status: SwiperStatus) => void;
+  children: ReactNode;
 }
 export default function Animator({
   currentPosition,
@@ -38,6 +35,7 @@ export default function Animator({
   containerHeight,
   downPosition,
   children,
+  showShadow = false,
 }: Props) {
   const nextPositionRef = useRef<Position>(midPosition);
   const positionRef = useRef(new Animated.ValueXY(currentPosition));
@@ -81,12 +79,10 @@ export default function Animator({
     }
   };
   const handlePanResponderRelease = () => {
-    console.log(nextPositionRef.current, 'next');
     transitionTo(nextPositionRef.current);
   };
   const transitionTo = (next: Position) => {
     if (isNaN(next?.x) || isNaN(next?.y)) {
-      console.log('not a number');
       return;
     }
     Animated.spring(position, {
@@ -106,7 +102,9 @@ export default function Animator({
     <Animated.View
       style={[
         {...position.getLayout()},
-        StyleSheet.flatten([styles.animationContainer(containerHeight)]),
+        StyleSheet.flatten([
+          styles.animationContainer(containerHeight, showShadow),
+        ]),
       ]}
       {...panHandlers}>
       {children}
@@ -124,9 +122,24 @@ const calculateEase = (gestureDY: number) =>
   Math.round(Math.min(Math.sqrt(gestureDY * -1), Math.sqrt(SCREEN_HEIGHT)));
 
 const styles = {
-  animationContainer: (height: number) => ({
-    width: SCREEN_WIDTH,
-    position: 'absolute',
-    height: height + Math.sqrt(SCREEN_HEIGHT),
-  }),
+  animationContainer: (height: number, showShadow: boolean = false) => {
+    const containerStyles = StyleSheet.create({
+      hasShadow: {
+        width: SCREEN_WIDTH,
+        position: 'absolute',
+        height: height + Math.sqrt(SCREEN_HEIGHT),
+        elevation: 2,
+        shadowOpacity: 0.12,
+        shadowColor: 'rgb(0,0,0)',
+        shadowOffset: {width: 0, height: 0},
+        shadowRadius: 10,
+      },
+      shadowNone: {
+        width: SCREEN_WIDTH,
+        position: 'absolute',
+        height: height + Math.sqrt(SCREEN_HEIGHT),
+      },
+    });
+    return showShadow ? containerStyles.hasShadow : containerStyles.shadowNone;
+  },
 };

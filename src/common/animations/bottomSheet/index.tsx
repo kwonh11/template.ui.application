@@ -1,6 +1,6 @@
 import React, {ReactChild, useEffect, useRef, useState} from 'react';
 import Animator from './Animator';
-import {View, Dimensions} from 'react-native';
+import {View, Dimensions, StyleSheet} from 'react-native';
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 const DEFAULT_POSITION = {x: 0, y: 0};
@@ -16,41 +16,29 @@ interface Props {
   downHeight: number;
   offset?: number;
   children: ReactChild;
-  onSwiperStatusChanged?: (status: SwiperStatus) => void;
+  showHandle?: boolean;
+  showShadow?: boolean;
 }
 export default function BottomDrawer({
   containerHeight,
   midHeight,
   downHeight,
   children,
-  onSwiperStatusChanged,
   offset = 0,
+  showShadow = false,
+  showHandle = false,
 }: Props) {
   const [currentPosition, setCurrentPosition] = useState<Position>({
     x: 0,
     y: 0,
   });
   const toggleThreshold = useRef<number>(50);
-  //   const upPosition = useRef<Position>(DEFAULT_POSITION);
-  //   const midPosition = useRef<Position>(DEFAULT_POSITION);
-  //   const downPosition = useRef<Position>(DEFAULT_POSITION);
   const [upPosition, setUpPosition] = useState<Position>(DEFAULT_POSITION);
   const [midPosition, setMidPosition] = useState<Position>(DEFAULT_POSITION);
   const [downPosition, setDownPosition] = useState<Position>(DEFAULT_POSITION);
 
   useEffect(() => {
     toggleThreshold.current = Math.round(containerHeight / 11);
-    // upPosition.current = calculateUpPosition(
-    //   SCREEN_HEIGHT,
-    //   containerHeight,
-    //   offset,
-    // );
-    // downPosition.current = calculateDownPosition(SCREEN_HEIGHT, downHeight);
-    // midPosition.current = calculateMidPosition(
-    //   downPosition.current,
-    //   midHeight,
-    //   downHeight,
-    // );
     setUpPosition(calculateUpPosition(SCREEN_HEIGHT, containerHeight, offset));
     setDownPosition(calculateDownPosition(SCREEN_HEIGHT, downHeight));
     setMidPosition(calculateMidPosition(downPosition.y, midHeight, downHeight));
@@ -65,7 +53,12 @@ export default function BottomDrawer({
       midPosition={midPosition}
       downPosition={downPosition}
       containerHeight={containerHeight}
-      setSwiperStatus={onSwiperStatusChanged}>
+      showShadow={showShadow}>
+      {showHandle && (
+        <View style={styles.handleWrap}>
+          <View style={styles.handle} />
+        </View>
+      )}
       {children}
       <View
         style={{
@@ -107,3 +100,20 @@ const calculateMidPosition = (
     y: Math.round(Math.floor(downPositionY - midHeight + downHeight)),
   };
 };
+
+const styles = StyleSheet.create({
+  handleWrap: {
+    width: '100%',
+    height: 20,
+    display: 'flex',
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  handle: {
+    width: 20,
+    height: 3,
+    borderRadius: 3,
+    backgroundColor: 'rgb(120,120,120)',
+  },
+});
